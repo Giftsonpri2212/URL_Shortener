@@ -40,6 +40,8 @@ function isExpired(expiresAt) {
 async function createShortUrl({ originalUrl, customShortCode, expiresAt, userId }) {
   const shortCode = customShortCode || (await generateShortCodeFromSequence()).shortCode;
 
+  console.log('[SERVICE] Creating short URL:', { originalUrl, shortCode, expiresAt, userId });
+
   try {
     const created = await urlModel.createShortUrl({
       originalUrl,
@@ -48,14 +50,19 @@ async function createShortUrl({ originalUrl, customShortCode, expiresAt, userId 
       userId
     });
 
+    console.log('[SERVICE] DB insert successful, created:', created);
+
     const ttl = getTtlSecondsFromExpiration(created.expires_at);
     await cacheService.setOriginalUrl(shortCode, {
       originalUrl: created.original_url,
       expiresAt: created.expires_at
     }, ttl === null ? undefined : ttl);
 
+    console.log('[SERVICE] Redis cache set for shortCode:', shortCode);
+
     return created;
   } catch (error) {
+    console.error('[SERVICE] Error in createShortUrl:', error.message);
     if (error.code === "23505") {
       throw new ConflictError("Short code already exists. Try another custom short code.");
     }
