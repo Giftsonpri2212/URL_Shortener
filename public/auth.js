@@ -43,7 +43,18 @@ async function apiRequest(path, payload) {
   }
 
   if (!response.ok) {
-    throw new Error(data?.message || data?.error || 'Request failed');
+    const validationDetails = Array.isArray(data?.details)
+      ? data.details
+          .map((item) => `${item.path || 'field'}: ${item.message || 'invalid value'}`)
+          .join(', ')
+      : '';
+
+    const message = data?.message
+      || (data?.error === 'ValidationError' && validationDetails)
+      || data?.error
+      || 'Request failed';
+
+    throw new Error(message);
   }
 
   return data;
