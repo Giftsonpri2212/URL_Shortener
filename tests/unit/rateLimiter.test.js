@@ -1,3 +1,11 @@
+jest.mock("../../src/config/env", () => {
+  const actual = jest.requireActual("../../src/config/env");
+  return {
+    ...actual,
+    nodeEnv: "production"
+  };
+});
+
 const { buildShortenRateLimit } = require("../../src/middlewares/rateLimiter");
 
 describe("shortenRateLimit middleware", () => {
