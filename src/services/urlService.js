@@ -38,6 +38,11 @@ function isExpired(expiresAt) {
 }
 
 async function createShortUrl({ originalUrl, customShortCode, expiresAt, userId }) {
+  const existing = await urlModel.findActiveByUserIdAndOriginalUrl(userId, originalUrl);
+  if (existing) {
+    return existing;
+  }
+
   const shortCode = customShortCode || (await generateShortCodeFromSequence()).shortCode;
 
   console.log('[SERVICE] Creating short URL:', { originalUrl, shortCode, expiresAt, userId });

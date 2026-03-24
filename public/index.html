@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>URL Shortener</title>
+  <title>Shortenly Dashboard</title>
   <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
@@ -13,94 +16,252 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255, 125, 72, 0.28) 0%, rgba(255, 125, 72, 0) 38%),
+        radial-gradient(circle at 80% 0%, rgba(0, 180, 196, 0.3) 0%, rgba(0, 180, 196, 0) 44%),
+        linear-gradient(160deg, #0f172a 0%, #111827 40%, #1f2937 100%);
       min-height: 100vh;
+      padding: 28px 20px;
+      color: #0f172a;
+    }
+
+    .page-header {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto 18px;
+    }
+
+    .page-main {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      height: calc(100vh - 120px);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      overflow: hidden;
     }
 
     .container {
-      background: white;
-      border-radius: 12px;
-      padding: 40px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      background: rgba(250, 250, 250, 0.95);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
       width: 100%;
-      max-width: 500px;
+      max-width: 780px;
+      max-height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow: hidden;
+      animation: fadeUp 0.45s ease;
+    }
+
+    .site-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 8px;
+      border-radius: 14px;
+      background: rgba(250, 250, 250, 0.92);
+      border: 1px solid rgba(203, 213, 225, 0.55);
+      box-shadow: 0 16px 28px rgba(0, 0, 0, 0.2);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #0f172a;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
+      color: #04202d;
+      font-size: 1rem;
+      box-shadow: 0 8px 16px rgba(14, 165, 233, 0.3);
+    }
+
+    .panel {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .links-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      flex: 1 1 auto;
     }
 
     h1 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 8px;
-      font-size: 2.5rem;
+      color: #0f172a;
+      font-size: 2.2rem;
+      letter-spacing: -0.03em;
       font-weight: 700;
+      line-height: 1.05;
     }
 
     .subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 32px;
-      font-size: 1rem;
+      color: #334155;
+      font-size: 0.98rem;
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+
+    .auth-state {
+      align-items: center;
+      display: none;
+      gap: 10px;
+    }
+
+    .auth-state.show {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .profile-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #f1f5f9;
+      border: 1px solid #dbe3ee;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 0.9rem;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    .profile-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #14b8a6;
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+    }
+
+    .profile-email {
+      max-width: 230px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .logout-btn {
+      width: max-content;
+      background: #111827;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    .logout-btn:hover {
+      background: #1f2937;
+    }
+
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      color: #0f172a;
+      font-weight: 600;
+      font-size: 0.88rem;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+
+    .link-btn:hover {
+      border-color: #94a3b8;
+      background: #f8fafc;
     }
 
     .form-group {
-      margin-bottom: 24px;
+      margin-bottom: 14px;
+      display: grid;
+      gap: 7px;
     }
 
     label {
-      display: block;
-      margin-bottom: 8px;
-      color: #333;
+      color: #334155;
       font-weight: 500;
+      font-size: 0.94rem;
     }
 
-    input[type="url"] {
+    input[type="url"],
+    input[type="email"],
+    input[type="password"],
+    select {
       width: 100%;
       padding: 12px 16px;
-      border: 2px solid #e1e5e9;
+      border: 1px solid #d1d5db;
       border-radius: 8px;
-      font-size: 16px;
-      transition: border-color 0.2s;
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: #ffffff;
+      color: #111827;
     }
 
-    input[type="url"]:focus {
+    input[type="url"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    select:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: #06b6d4;
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.16);
     }
 
-    .shorten-btn {
+    .primary-btn {
       width: 100%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: linear-gradient(90deg, #0ea5e9 0%, #06b6d4 50%, #14b8a6 100%);
+      color: #04121a;
       border: none;
       padding: 14px;
       border-radius: 8px;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.1s, box-shadow 0.1s;
+      transition: transform 0.14s, box-shadow 0.14s;
     }
 
-    .shorten-btn:hover {
+    .primary-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      box-shadow: 0 8px 20px rgba(20, 184, 166, 0.3);
     }
 
-    .shorten-btn:disabled {
+    .primary-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
       transform: none;
+      box-shadow: none;
     }
 
     .result {
-      margin-top: 24px;
-      padding: 20px;
-      background: #f8f9fa;
+      margin-top: 16px;
+      padding: 16px;
+      background: #f8fafc;
       border-radius: 8px;
-      border-left: 4px solid #667eea;
+      border-left: 4px solid #06b6d4;
       display: none;
     }
 
@@ -110,13 +271,13 @@
 
     .result-label {
       font-weight: 600;
-      color: #333;
+      color: #0f172a;
       margin-bottom: 8px;
     }
 
     .short-url {
       word-break: break-all;
-      color: #667eea;
+      color: #0e7490;
       text-decoration: none;
       font-weight: 500;
     }
@@ -127,8 +288,8 @@
 
     .copy-btn {
       margin-top: 12px;
-      background: #28a745;
-      color: white;
+      background: #0f172a;
+      color: #ffffff;
       border: none;
       padding: 8px 16px;
       border-radius: 6px;
@@ -138,16 +299,257 @@
     }
 
     .copy-btn:hover {
-      background: #218838;
+      background: #1f2937;
+    }
+
+    .links-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .links-title {
+      font-size: 1.45rem;
+      line-height: 1.1;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+
+    .links-subtitle {
+      color: #475569;
+      font-size: 0.92rem;
+      margin-top: 4px;
+    }
+
+    .links-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .links-summary {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #dbe3ee;
+      background: #f8fafc;
+      color: #1e293b;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .secondary-btn {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      font-size: 0.86rem;
+    }
+
+    .secondary-btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .danger-btn {
+      border: 1px solid #fca5a5;
+      background: #fff1f2;
+      color: #b91c1c;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      font-size: 0.86rem;
+    }
+
+    .danger-btn:hover {
+      background: #ffe4e6;
+      border-color: #fb7185;
+    }
+
+    .clear-confirm {
+      margin-bottom: 12px;
+      border: 1px solid #fecdd3;
+      background: #fff1f2;
+      border-radius: 12px;
+      padding: 12px;
+      display: none;
+      gap: 10px;
+    }
+
+    .clear-confirm.show {
+      display: grid;
+    }
+
+    .clear-confirm-text {
+      color: #881337;
+      font-size: 0.9rem;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .clear-toggle-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #9f1239;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .clear-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .confirm-clear-btn {
+      border: 1px solid #dc2626;
+      background: #dc2626;
+      color: #ffffff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      font-size: 0.86rem;
+    }
+
+    .confirm-clear-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .confirm-clear-btn:not(:disabled):hover {
+      background: #b91c1c;
+      border-color: #b91c1c;
+    }
+
+    .table-wrap {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: auto;
+      background: #ffffff;
+      flex: 1 1 auto;
+      min-height: 220px;
+    }
+
+    .links-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    .links-table th,
+    .links-table td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid #eef2f7;
+      vertical-align: middle;
+      color: #1e293b;
+      font-size: 0.9rem;
+    }
+
+    .links-table th {
+      background: #f8fafc;
+      color: #334155;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .links-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .links-table a {
+      color: #0e7490;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .links-table a:hover {
+      text-decoration: underline;
+    }
+
+    .original-link {
+      display: inline-block;
+      max-width: 300px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      vertical-align: bottom;
+    }
+
+    .count-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      border-radius: 999px;
+      padding: 3px 10px;
+      background: #ecfeff;
+      border: 1px solid #bae6fd;
+      color: #0f766e;
+      font-weight: 700;
+      font-size: 0.82rem;
+    }
+
+    .row-actions {
+      display: inline-flex;
+      gap: 6px;
+    }
+
+    .mini-btn {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-weight: 600;
+      font-family: inherit;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .mini-btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .links-empty {
+      border: 1px dashed #cbd5e1;
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 20px;
+      color: #475569;
+      text-align: center;
+      font-size: 0.95rem;
+      display: none;
+    }
+
+    .links-empty.show {
+      display: block;
     }
 
     .status {
-      margin-top: 16px;
+      margin-top: 12px;
       padding: 12px;
       border-radius: 6px;
-      text-align: center;
+      text-align: left;
       font-weight: 500;
       display: none;
+      font-size: 0.92rem;
     }
 
     .status.show {
@@ -155,15 +557,15 @@
     }
 
     .status.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
     }
 
     .status.success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
     }
 
     .loading {
@@ -180,35 +582,146 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .page-main {
+        height: calc(100vh - 130px);
+        align-items: flex-start;
+      }
+
+      .container {
+        padding: 18px;
+      }
+
+      h1 {
+        font-size: 1.9rem;
+      }
+
+      .site-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .auth-state {
+        width: 100%;
+      }
+
+      .profile-chip {
+        max-width: 100%;
+      }
+
+      .links-head {
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🔗 URL Shortener</h1>
-    <p class="subtitle">Transform long URLs into short, shareable links</p>
+  <header class="page-header">
+    <div class="site-header">
+      <a href="/dashboard" class="brand" aria-label="UrlShortner home">
+        <span class="brand-mark">U</span>
+        <span>UrlShortner</span>
+      </a>
 
-    <div class="form-group">
-      <label for="urlInput">Enter your long URL:</label>
-      <input
-        type="url"
-        id="urlInput"
-        placeholder="https://example.com/very-long-url-here"
-      >
+      <div id="authState" class="auth-state">
+        <a href="/login" id="loginLink" class="link-btn">Login</a>
+        <a href="/register" id="registerLink" class="link-btn">Registration</a>
+        <span id="profileChip" class="profile-chip">
+          <span class="profile-dot" aria-hidden="true"></span>
+          <span class="profile-email" id="currentUserEmail"></span>
+        </span>
+        <button type="button" id="logoutBtn" class="logout-btn">Log Out</button>
+      </div>
+      </div>
+
+  </header>
+
+  <main class="page-main">
+    <div class="container">
+        <section class="panel">
+          <h1>Shortenly Dashboard</h1>
+          <p class="subtitle">Create short links after login. If you are signed out, use the auth pages to continue.</p>
+
+          <div class="form-group">
+            <label for="urlInput">Enter a URL to shorten</label>
+            <input
+              type="url"
+              id="urlInput"
+              placeholder="https://example.com/very-long-url-here"
+            >
+          </div>
+
+          <button type="button" class="primary-btn" id="shortenBtn">
+            Shorten URL
+          </button>
+
+          <div id="result" class="result">
+            <div class="result-label">Your shortened URL:</div>
+            <a id="shortUrl" href="#" target="_blank" class="short-url"></a>
+            <br>
+            <button id="copyBtn" class="copy-btn">Copy to Clipboard</button>
+          </div>
+
+          <div id="status" class="status"></div>
+        </section>
+
+        <section class="panel links-panel">
+          <div class="links-head">
+            <div>
+              <h2 class="links-title">My Shortened Links</h2>
+              <p class="links-subtitle">All links created with your account are listed below.</p>
+            </div>
+            <div class="links-controls">
+              <span id="linksSummary" class="links-summary">0 links</span>
+              <button type="button" id="refreshLinksBtn" class="secondary-btn">Refresh</button>
+              <button type="button" id="clearLinksBtn" class="danger-btn">Clear All Links</button>
+            </div>
+          </div>
+
+          <div id="clearConfirmPanel" class="clear-confirm">
+            <div class="clear-confirm-text">This will permanently delete all your shortened links. This action cannot be retained again.</div>
+            <label class="clear-toggle-row" for="clearConfirmToggle">
+              <input type="checkbox" id="clearConfirmToggle">
+              Sure to clear all links permanently.
+            </label>
+            <div class="clear-actions">
+              <button type="button" id="confirmClearBtn" class="confirm-clear-btn" disabled>Yes, Clear Everything</button>
+              <button type="button" id="cancelClearBtn" class="secondary-btn">Cancel</button>
+            </div>
+          </div>
+
+          <div id="linksEmpty" class="links-empty">No links yet. Create your first short URL above.</div>
+
+          <div id="linksTableWrap" class="table-wrap">
+            <table class="links-table">
+              <thead>
+                <tr>
+                  <th>Short URL</th>
+                  <th>Original URL</th>
+                  <th>Clicks</th>
+                  <th>Created</th>
+                  <th>Expires</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="linksTableBody"></tbody>
+            </table>
+          </div>
+        </section>
     </div>
-
-    <button type="button" class="shorten-btn" id="shortenBtn">
-      Shorten URL
-    </button>
-
-    <div id="result" class="result">
-      <div class="result-label">Your shortened URL:</div>
-      <a id="shortUrl" href="#" target="_blank" class="short-url"></a>
-      <br>
-      <button id="copyBtn" class="copy-btn">Copy to Clipboard</button>
-    </div>
-
-    <div id="status" class="status"></div>
-  </div>
+  </main>
 
   <script src="/app.js" defer></script>
 </body>

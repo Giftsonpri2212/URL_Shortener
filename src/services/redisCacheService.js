@@ -1,5 +1,6 @@
 const env = require("../config/env");
 const { redis } = require("../config/redis");
+const { logError } = require("../config/logger");
 
 const URL_CACHE_PREFIX = "short_url:";
 
@@ -8,31 +9,53 @@ function getUrlCacheKey(shortCode) {
 }
 
 async function getOriginalUrl(shortCode) {
-  const key = getUrlCacheKey(shortCode);
-  const cachedValue = await redis.get(key);
+  try {
+    const key = getUrlCacheKey(shortCode);
+    const cachedValue = await redis.get(key);
 
-  if (!cachedValue) {
+    if (!cachedValue) {
+      return null;
+    }
+
+    return JSON.parse(cachedValue);
+  } catch (error) {
+    logError("Redis get failed; continuing without cache", {
+      message: error.message,
+      shortCode
+    });
     return null;
   }
-
-  return JSON.parse(cachedValue);
 }
 
 async function setOriginalUrl(shortCode, payload, ttlSeconds = env.cacheDefaultTtlSeconds) {
-  const key = getUrlCacheKey(shortCode);
-  const value = JSON.stringify(payload);
+  try {
+    const key = getUrlCacheKey(shortCode);
+    const value = JSON.stringify(payload);
 
-  if (ttlSeconds > 0) {
-    await redis.set(key, value, "EX", ttlSeconds);
-    return;
+    if (ttlSeconds > 0) {
+      await redis.set(key, value, "EX", ttlSeconds);
+      return;
+    }
+
+    await redis.set(key, value);
+  } catch (error) {
+    logError("Redis set failed; continuing without cache", {
+      message: error.message,
+      shortCode
+    });
   }
-
-  await redis.set(key, value);
 }
 
 async function deleteOriginalUrl(shortCode) {
-  const key = getUrlCacheKey(shortCode);
-  await redis.del(key);
+  try {
+    const key = getUrlCacheKey(shortCode);
+    await redis.del(key);
+  } catch (error) {
+    logError("Redis delete failed; continuing without cache", {
+      message: error.message,
+      shortCode
+    });
+  }
 }
 
 module.exports = {

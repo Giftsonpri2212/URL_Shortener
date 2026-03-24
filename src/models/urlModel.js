@@ -69,11 +69,39 @@ async function findByUserId(userId) {
   return rows;
 }
 
+async function deleteByUserId(userId) {
+  const query = `
+    DELETE FROM short_urls
+    WHERE user_id = $1
+    RETURNING short_code;
+  `;
+
+  const { rows } = await db.query(query, [userId]);
+  return rows;
+}
+
+async function findActiveByUserIdAndOriginalUrl(userId, originalUrl) {
+  const query = `
+    SELECT id, original_url, short_code, click_count, expires_at, created_at, user_id
+    FROM short_urls
+    WHERE user_id = $1
+      AND original_url = $2
+      AND (expires_at IS NULL OR expires_at > NOW())
+    ORDER BY created_at DESC
+    LIMIT 1;
+  `;
+
+  const { rows } = await db.query(query, [userId, originalUrl]);
+  return rows[0] || null;
+}
+
 module.exports = {
   createShortUrl,
   findByShortCode,
   incrementClickCount,
   getShortCodeById,
   countByUserId,
-  findByUserId
+  findByUserId,
+  findActiveByUserIdAndOriginalUrl,
+  deleteByUserId
 };

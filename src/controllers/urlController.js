@@ -7,21 +7,25 @@ async function shortenUrl(req, res, next) {
     console.log('[API] POST /api/shorten hit');
     console.log('[API] Request body:', req.validatedBody);
 
-    const { url, customShortCode, expiresAt } = req.validatedBody;
-
-    // Skip quota check if no user (JWT disabled for development)
-    if (req.user && req.user.id) {
-      await quotaService.ensureQuotaAvailable({
-        userId: req.user.id,
-        planType: req.user.planType
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "Authentication is required to create short URLs"
       });
     }
+
+    const { url, customShortCode, expiresAt } = req.validatedBody;
+
+    await quotaService.ensureQuotaAvailable({
+      userId: req.user.id,
+      planType: req.user.planType
+    });
 
     const created = await urlService.createShortUrl({
       originalUrl: url,
       customShortCode,
       expiresAt,
-      userId: req.user ? req.user.id : null
+      userId: req.user.id
     });
 
     const response = {

@@ -211,3 +211,168 @@ See .env.example for all values including:
 2. Start services: docker compose up --build.
 3. API listens on port 3000.
 4. Separate worker service processes analytics queue jobs.
+
+## Host in Production (VPS + Docker Compose)
+
+This is the fastest path to host the full stack (API + worker + PostgreSQL + Redis) on one server.
+
+### 1) Prepare server
+
+- Create an Ubuntu 22.04 VPS (2 vCPU, 4 GB RAM recommended).
+- Point your domain DNS A record to the VPS IP.
+- Install Docker and Compose plugin:
+
+```bash
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+### 2) Deploy app files
+
+```bash
+git clone <your-repo-url> url-shortener
+cd url-shortener
+cp .env.example .env
+```
+
+Edit `.env` for production:
+
+- `NODE_ENV=production`
+- `BASE_URL=https://your-domain.com`
+- `JWT_SECRET=<long-random-secret>`
+- `POSTGRES_PASSWORD=<strong-password>`
+
+### 3) Start services
+
+```bash
+docker compose up -d --build
+docker compose ps
+docker compose logs -f api
+```
+
+If this is a fresh deployment, schema is auto-applied from `database/schema.sql` on first PostgreSQL startup.
+
+### 4) Put HTTPS in front (Caddy)
+
+Install Caddy:
+
+```bash
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update
+sudo apt install -y caddy
+```
+
+Create `/etc/caddy/Caddyfile`:
+
+```caddyfile
+your-domain.com {
+  reverse_proxy 127.0.0.1:3000
+}
+```
+
+Then reload:
+
+```bash
+sudo systemctl reload caddy
+```
+
+Caddy automatically provisions and renews TLS certificates.
+
+### 5) Verify
+
+- `https://your-domain.com/health`
+- `https://your-domain.com/login`
+
+### 6) Operations
+
+Update deployment:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Backups:
+
+- Persisted data is stored in Docker volumes `postgres_data` and `redis_data`.
+- Back up PostgreSQL regularly with `pg_dump` from the running container.
+
+## Minimal Cloud Alternative
+
+If you prefer managed services instead of a VPS:
+
+- Host API + worker on Railway or Render.
+- Host PostgreSQL on Neon/Supabase/Railway Postgres.
+- Host Redis on Upstash or Redis Cloud.
+
+Set the same environment variables from `.env.example`, especially `BASE_URL`, DB host/credentials, Redis host/credentials, and `JWT_SECRET`.
+
+## Deploy on Render
+
+Use this when you host on Render with managed PostgreSQL + Redis.
+
+### Render services
+
+Create these services in Render:
+
+- Web Service: runs `npm start`
+- Background Worker: runs `npm run start:worker`
+- PostgreSQL: managed database
+- Redis: managed cache/queue
+
+Use the same Git repo/branch for both Web and Worker.
+
+### Build and start commands
+
+- Build command: `npm ci`
+- Web start command: `npm run db:schema && npm start`
+- Worker start command: `npm run start:worker`
+
+The schema command is safe to run repeatedly because schema SQL uses `IF NOT EXISTS`.
+
+### Required environment variables
+
+Set these on both Web and Worker:
+
+- `NODE_ENV=production`
+- `BASE_URL=https://<your-render-domain-or-custom-domain>`
+- `JWT_SECRET=<long-random-secret>`
+- `JWT_EXPIRES_IN=1d`
+- `ANALYTICS_QUEUE_NAME=analytics-events`
+
+For database and Redis, either provide URL style variables from Render:
+
+- `DATABASE_URL=<Render PostgreSQL External/Private URL>`
+- `REDIS_URL=<Render Redis URL>`
+
+Or provide expanded host variables:
+
+- `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
+- `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`
+
+This project now supports both styles.
+
+### Health check
+
+Set Render health check path to:
+
+- `/health`
+
+### First deploy checklist
+
+1. Deploy PostgreSQL and Redis first.
+2. Add env vars to Web and Worker.
+3. Deploy Web (runs schema + API).
+4. Deploy Worker.
+5. Verify:
+  - `GET /health` returns status ok.
+  - Register/login works.
+  - Shorten URL works.
+  - Redirect increments analytics asynchronously.

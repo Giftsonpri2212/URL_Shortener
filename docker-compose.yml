@@ -9,6 +9,13 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    environment:
+      PORT: 3000
+      BASE_URL: http://localhost:3000
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       postgres:
         condition: service_healthy
@@ -24,6 +31,12 @@ services:
     command: ["node", "src/workers/analyticsWorker.js"]
     env_file:
       - .env
+    environment:
+      BASE_URL: http://localhost:3000
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       postgres:
         condition: service_healthy
